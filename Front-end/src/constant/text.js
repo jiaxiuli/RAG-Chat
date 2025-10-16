@@ -6,6 +6,9 @@ const TEXT = {
   uploadedAt: 'Uploaded at',
   thinking: 'Thinking...',
 
+  //empty title
+  ask: 'Ask me anything about your documents',
+
   //notifications
   fileDeleteSuccess: 'File deleted successfully',
   fileDeleteError: 'File delete failed',

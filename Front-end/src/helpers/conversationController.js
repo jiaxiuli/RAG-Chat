@@ -30,6 +30,7 @@ const useConversationController = () => {
     const conversationHistory = data?.data?.items ?? [];
     setChatHistory(
       conversationHistory.map((item) => ({
+        ...item,
         type: item.type === 'user' ? MESSAGE_TYPE.USER_MESSAGE : MESSAGE_TYPE.AGANT_RESPONSE,
         content: item.type === 'user' ? item.content : item.answer,
       })),

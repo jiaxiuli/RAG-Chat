@@ -20,7 +20,7 @@ const Home = () => {
       }
       if (message.type === NOTIFY_TYPE.DONE) {
         toggleThinking(false);
-        pushMessage({ type: MESSAGE_TYPE.AGANT_RESPONSE, content: message.answer });
+        pushMessage({ type: MESSAGE_TYPE.AGANT_RESPONSE, content: message.answer, citations: message.citations });
         toggleStreaming(false);
         clearStreaming();
       }

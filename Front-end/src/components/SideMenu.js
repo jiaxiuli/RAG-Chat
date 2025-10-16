@@ -194,16 +194,22 @@ const SideMenu = () => {
         </Button>
       </Box>
       <Divider></Divider>
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <Accordion
           expanded={expanded === AccordionType.files}
           onChange={() => handleAccordinChange(AccordionType.files)}
-          sx={{ flex: expanded === AccordionType.files ? 1 : 'unset' }}
+          sx={{
+            flex: expanded === AccordionType.files ? 1 : 'unset',
+            display: 'flex',
+            flexDirection: 'column',
+            height: expanded === AccordionType.files ? 'calc(100% - 128px)' : 'auto',
+            '& .MuiCollapse-root': { flex: expanded === AccordionType.files ? 1 : 'unset', overflow: 'auto' },
+          }}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="uploaded-files-content" id="uploaded-files-header">
             <Typography component="span">{TEXT.uploadedFiles}</Typography>
           </AccordionSummary>
-          <AccordionDetails sx={{ padding: '0px 8px 8px 8px' }}>
+          <AccordionDetails className="ssss" sx={{ padding: '0px 8px 8px 8px' }}>
             {isLoading && (
               <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <CircularProgress />
@@ -221,7 +227,13 @@ const SideMenu = () => {
         <Accordion
           expanded={expanded === AccordionType.conversations}
           onChange={() => handleAccordinChange(AccordionType.conversations)}
-          sx={{ flex: expanded === AccordionType.conversations ? 1 : 'unset' }}
+          sx={{
+            flex: expanded === AccordionType.conversations ? 1 : 'unset',
+            display: 'flex',
+            flexDirection: 'column',
+            height: expanded === AccordionType.conversations ? 'calc(100% - 128px)' : 'auto',
+            '& .MuiCollapse-root': { flex: expanded === AccordionType.conversations ? 1 : 'unset', overflow: 'auto' },
+          }}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="conversations-content" id="conversations-header">
             <Typography component="span">{TEXT.conversations}</Typography>

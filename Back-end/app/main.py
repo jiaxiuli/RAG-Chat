@@ -13,7 +13,7 @@ from db import estimate_cost_usd, PRICING
 from ingest import parse_pdf, chunk_text
 from embeddings import get_embedding
 from models import Base
-from chat import select_chunks_by_budget, build_prompt, call_llm_and_parse
+from chat import select_chunks_by_budget, build_prompt, call_llm_and_parse, estimate_tokens
 from chat import stream_rag_answer
 import time
 from typing import Optional, List, Dict, Any
@@ -41,18 +41,60 @@ app.add_middleware(
 
 @app.post("/upload/")
 def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    pdf_str = parse_pdf(file.file)
-    chunks = chunk_text(pdf_str)
-    print(chunks)
-    doc = insert_document(db, title=file.filename, source_url="", source_type="pdf")
-    emb = []
-    for i, chunk in enumerate(chunks):
-        print(chunk)
-        chunk_obj = insert_chunk(db, doc.id, i, chunk, 0, 1)
-        vector = get_embedding(chunk)
-        insert_embedding(db, chunk_obj.id, vector)
+    # pdf_str = parse_pdf(file.file)
+    # chunks = chunk_text(pdf_str)
+    # print(chunks)
+    # doc = insert_document(db, title=file.filename, source_url="", source_type="pdf")
+    # emb = []
+    # for i, chunk in enumerate(chunks):
+    #     print(chunk)
+    #     chunk_obj = insert_chunk(db, doc.id, i, chunk, 0, 1)
+    #     vector = get_embedding(chunk)
+    #     insert_embedding(db, chunk_obj.id, vector)
+    #
+    # return {"message": f"文件 {file.filename} 已成功入库，共 {len(chunks)} 个切片"}
+    # 1) parse_pdf 返回 [(page_number, text), ...]
+    pages = parse_pdf(file.file)
 
-    return {"message": f"文件 {file.filename} 已成功入库，共 {len(chunks)} 个切片"}
+    # 2) 新建文档记录
+    doc = insert_document(db, title=file.filename, source_url="", source_type="pdf")
+
+    # 3) 遍历每一页 → 切片 → 入库
+    global_chunk_index = 0  # 全文范围内的 chunk_index，保证顺序一致
+    total_chunks = 0
+
+    for page_number, page_text in pages:
+        if not page_text.strip():
+            continue
+
+        page_chunks = chunk_text(page_text)  # 或者 chunk_text(page_text, max_tokens=350, overlap=40)
+        for chunk in page_chunks:
+            # 估算 tokens（可选）
+            tokens = 0
+            if estimate_tokens:
+                try:
+                    tokens = int(estimate_tokens(chunk))
+                except Exception:
+                    tokens = 0
+
+            # 3.1 存入 chunk（关键：传正确的 page_number）
+            chunk_obj = insert_chunk(
+                db,
+                document_id=doc.id,
+                chunk_index=global_chunk_index,
+                text=chunk,
+                tokens=tokens,
+                page_number=page_number,  # ✅ 正确的页码
+            )
+
+            # 3.2 生成并写入 embedding
+            vector = get_embedding(chunk)
+            insert_embedding(db, chunk_obj.id, vector)
+
+            global_chunk_index += 1
+            total_chunks += 1
+
+    return {"message": f"File {file.filename} ingested. {total_chunks} chunks stored.", "document_id": str(doc.id)}
 
 @app.get("/search")
 def search_api(q: str = Query(..., description="用户问题"),
@@ -328,6 +370,7 @@ async def ws_chat(
                     "doc_title": h.get("title") or "",
                     "page": h.get("page_number"),
                     "chunk_id": str(h["chunk_id"]),
+                    "content": h.get("text") or "",
                 }
                 for h in used_chunks[:3]
             ]
@@ -353,6 +396,7 @@ async def ws_chat(
                             full_text += txt
                             # Normal send:
                             await websocket.send_json({"type": "delta", "text": txt})
+                            await asyncio.sleep(60 / 1000.0)
                             # Or throttled send (if you added helpers):
                             # await send_rate_limited(websocket, txt, cps=60, min_chunk=8, tick_ms=50)
 

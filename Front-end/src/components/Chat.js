@@ -1,6 +1,9 @@
 import Box from '@mui/material/Box';
 import { grey } from '@mui/material/colors';
-import { IconButton, TextField, CircularProgress, Typography } from '@mui/material';
+import { IconButton, TextField, CircularProgress, Typography, Divider } from '@mui/material';
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
 import { useEffect, useRef, useState } from 'react';
 import SendIcon from '@mui/icons-material/Send';
 import { sendWS } from '../queries/wsClient';
@@ -11,11 +14,15 @@ import useConversationController from '../helpers/conversationController';
 const response_style = {
   lineHeight: '22px',
   fontSize: '16px',
+  marginBottom: '8px',
 };
+
+const initCitationDialog = { isOpen: false, title: '', content: '' };
 
 const Chat = () => {
   const { currentConversation, chatHistory, pushMessage, isStreaming, streaming, isThinking, toggleThinking } = useConversationController();
   const chatAreaRef = useRef(null);
+  const [citationDialog, setCitationDialog] = useState(initCitationDialog);
   const [query, setQuery] = useState('');
   const handleSendMessage = () => {
     toggleThinking(true);
@@ -35,6 +42,15 @@ const Chat = () => {
       chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
     }
   });
+
+  const handleViewCitation = (citation) => {
+    if (!citation) return;
+    setCitationDialog({
+      isOpen: true,
+      title: `${citation.doc_title || 'Unknown title'} - Page ${citation.page || 'Unknown page'}`,
+      content: citation.content || 'Unknown content',
+    });
+  };
   return (
     <Box
       sx={{
@@ -55,6 +71,7 @@ const Chat = () => {
       >
         {chatHistory.map((message, index) => {
           const userMessage = message.type === MESSAGE_TYPE.USER_MESSAGE;
+          const citations = message?.citations;
           return (
             <Box key={index} sx={userMessage ? { display: 'flex', justifyContent: 'flex-end' } : {}}>
               <Typography
@@ -62,6 +79,36 @@ const Chat = () => {
               >
                 {message.content}
               </Typography>
+              {!userMessage && citations && citations.length > 0 && (
+                <Box id="message-citation">
+                  {citations.map((citation, index) => (
+                    <Box key={`${message.message_id}-${citation.chunk_id}-${index}`}>
+                      <Divider />
+                      <Box
+                        sx={{ padding: '8px', cursor: 'pointer', borderRadius: '8px', '&:hover': { background: grey[200] } }}
+                        onClick={() => handleViewCitation(citation)}
+                      >
+                        <Typography sx={{ fontStyle: 'italic', color: grey[500], fontSize: 14 }}>
+                          {`Citation ${index + 1}: ${citation.doc_title}, page ${citation.page}`}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            color: grey[900],
+                            display: '-webkit-box',
+                            WebkitBoxOrient: 'vertical',
+                            WebkitLineClamp: 2,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {`${citation.content}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Box>
           );
         })}
@@ -72,6 +119,11 @@ const Chat = () => {
             <Typography sx={response_style}>{TEXT.thinking}</Typography>
           </Box>
         ) : null}
+      </Box>
+      <Box sx={{ display: chatHistory.length > 0 ? 'none' : 'block' }}>
+        <Typography sx={{ textAlign: 'center', padding: 4 }} variant="h6">
+          {TEXT.ask}
+        </Typography>
       </Box>
       <Box className="input-area" sx={{ height: chatHistory.length > 0 ? 'auto' : '50%' }}>
         <TextField
@@ -107,6 +159,13 @@ const Chat = () => {
           }}
         />
       </Box>
+
+      <Dialog onClose={() => setCitationDialog(initCitationDialog)} open={citationDialog.isOpen}>
+        <DialogTitle>{citationDialog.title}</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ whiteSpace: 'pre-line' }}>{citationDialog.content}</Typography>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
