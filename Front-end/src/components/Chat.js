@@ -79,7 +79,7 @@ const Chat = () => {
               >
                 {message.content}
               </Typography>
-              {!userMessage && citations && citations.length > 0 && (
+              {!userMessage && citations && citations.length > 0 && message.content !== 'Not enough information to answer.' && (
                 <Box id="message-citation">
                   {citations.map((citation, index) => (
                     <Box key={`${message.message_id}-${citation.chunk_id}-${index}`}>

@@ -101,7 +101,12 @@ def search_api(q: str = Query(..., description="用户问题"),
                k: int = 12,
                db: Session = Depends(get_db)):
     hits = search_chunks(db, user_query=q, k=k)
-    context, citations = build_context_and_citations(hits)
+    context, citations = build_context_and_citations(
+        hits,
+        min_score=0.15,
+        max_context_tokens=3000,
+        max_citations=5
+    )
     return {
         "query": q,
         "k": k,

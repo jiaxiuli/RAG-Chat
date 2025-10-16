@@ -206,24 +206,92 @@ def search_chunks(
     return final
 
 # ---------- 上下文与引用 ----------
-def build_context_and_citations(hits: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str, Any]]]:
-    # 组上下文：同文档按 chunk_index 升序
-    ordered = sorted(hits, key=lambda x: (x["document_id"], x["chunk_index"]))
+# def build_context_and_citations(hits: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str, Any]]]:
+#     # 组上下文：同文档按 chunk_index 升序
+#     ordered = sorted(hits, key=lambda x: (x["document_id"], x["chunk_index"]))
+#     context = "\n---\n".join(h["text"] for h in ordered)
+#
+#     # 去重后的引用：文档 + 页码
+#     citations = []
+#     seen = set()
+#     for h in ordered:
+#         key = (h["document_id"], h.get("page_number"))
+#         if key in seen:
+#             continue
+#         seen.add(key)
+#         citations.append({
+#             "title": h.get("title"),
+#             "page": h.get("page_number"),
+#             "url": h.get("source_url"),
+#         })
+#     return context, citations
+def build_context_and_citations(
+    hits: List[Dict[str, Any]],
+    min_score: float = 0.15,
+    max_context_tokens: int = 3000,
+    max_citations: int = 5,
+    max_chars_per_citation: int = 800
+) -> Tuple[str, List[Dict[str, Any]]]:
+    """
+    Build context (for prompt) and citations (for display).
+
+    - Filters chunks by rrf_score / similarity score threshold
+    - Sorts by descending relevance
+    - Dynamically limits number of citations
+    - Avoids including irrelevant docs
+    """
+
+    if not hits:
+        return "", []
+
+    # Some search results may have rrf_score or similarity_score; fallback to 0
+    for h in hits:
+        h["score"] = h.get("rrf_score") or h.get("similarity") or 0.0
+
+    # 1️⃣ Sort by score (high → low)
+    hits = sorted(hits, key=lambda x: x["score"], reverse=True)
+
+    # 2️⃣ Filter by relevance threshold
+    filtered = [h for h in hits if h["score"] >= min_score]
+
+    # If everything too low, fallback to top few highest
+    if not filtered:
+        top_score = hits[0]["score"]
+        filtered = [h for h in hits if h["score"] >= top_score * 0.8]
+
+    # 3️⃣ Deduplicate (document_id + page)
+    unique = []
+    seen_keys = set()
+    for h in filtered:
+        key = (h["document_id"], h.get("page_number"))
+        if key not in seen_keys:
+            seen_keys.add(key)
+            unique.append(h)
+
+    # 4️⃣ Construct context within token budget
+    total_tokens = 0
+    context_chunks = []
+    for h in unique:
+        t = h.get("tokens", len(h.get("text", "")) // 4)
+        if total_tokens + t > max_context_tokens:
+            break
+        context_chunks.append(h)
+        total_tokens += t
+
+    # 5️⃣ Build citations — only include the ones we actually used
+    citations = []
+    for h in context_chunks[:max_citations]:
+        citations.append({
+            "page": h.get("page_number"),
+            "chunk_id": str(h["chunk_id"]),
+            "doc_title": h.get("title") or "",
+            "content": (h.get("text") or "")[:max_chars_per_citation],
+        })
+
+    # 6️⃣ Final context text for LLM
+    ordered = sorted(context_chunks, key=lambda x: (x["document_id"], x["chunk_index"]))
     context = "\n---\n".join(h["text"] for h in ordered)
 
-    # 去重后的引用：文档 + 页码
-    citations = []
-    seen = set()
-    for h in ordered:
-        key = (h["document_id"], h.get("page_number"))
-        if key in seen:
-            continue
-        seen.add(key)
-        citations.append({
-            "title": h.get("title"),
-            "page": h.get("page_number"),
-            "url": h.get("source_url"),
-        })
     return context, citations
 
 def estimate_cost_usd(

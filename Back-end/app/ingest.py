@@ -32,7 +32,7 @@ def parse_url(url: str) -> str:
     soup = BeautifulSoup(resp.text, "html.parser")
     return soup.get_text(separator="\n")
 
-def chunk_text(text: str, max_tokens=300, overlap=50, model="gpt-3.5-turbo"):
+def chunk_text(text: str, max_tokens=600, overlap=50, model="gpt-3.5-turbo"):
     # encoding = tiktoken.encoding_for_model(model)
     # tokens = encoding.encode(text)
     #
