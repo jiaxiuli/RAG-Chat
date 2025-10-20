@@ -25,17 +25,20 @@ It supports:
 
 ---
 
+### Environment Requirements
 
----
-
-## ⚙️ 1. Backend Setup
-
-### 🐍 Prerequisites
-
-- Python ≥ 3.10  
+- Python ≥ 3.11
 - PostgreSQL ≥ 15  
 - [pgvector](https://github.com/pgvector/pgvector) extension installed  
 - An [OpenAI API key](https://platform.openai.com/account/api-keys)
+- 
+- Before running the project, make sure your environment meets the following requirements:
+
+PostgreSQL: Installed and configured locally
+Node.js & npm: Installed (for the front-end)
+
+Set up your local PostgreSQL database using the following connection string:
+DATABASE_URL = "postgresql://rag_user:123456@localhost:5432/ragchat"
 
 ---
 
@@ -43,70 +46,45 @@ It supports:
 
 ```bash
 git clone https://github.com/yourusername/RAGChat.git
-cd RAGChat/Back-end/app
+
 ```
-### Step 2. Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+### Step 2. Backend Setup
+Navigate to the Back-end folder:
+```bash
+cd Back-end
+```
 
-### Step 3. Install dependencies
-If you already have a requirements.txt:
+Create a .env file inside the Back-end folder and add your OpenAI API key:
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
+Install Python dependencies:
+```bash
 pip install -r requirements.txt
+```
 
-fastapi
-uvicorn
-sqlalchemy
-psycopg2-binary
-openai
-tiktoken
-python-dotenv
-PyPDF2
-requests
+### Step 3. Frontend Setup
+Navigate to the Front-end folder:
+```bash
+cd Front-end
+```
 
-### Step 4. Install and configure PostgreSQL + pgvector
-macOS
-brew install postgresql
-brew services start postgresql
-psql postgres
-CREATE DATABASE ragchat;
-\c ragchat
-CREATE EXTENSION vector;
+Install npm dependencies:
+```bash
+npm install
+```
 
-Ubuntu / Linux
-sudo apt install postgresql postgresql-contrib
-sudo -u postgres psql
-CREATE DATABASE ragchat;
-\c ragchat
-CREATE EXTENSION vector;
+### Step 4. Running the Project
+##### Backend Server
 
-Windows (WSL or local)
-Install PostgreSQL from postgresql.org/download
-.
+From the Back-end/app directory, run:
+```bash
+python main.py
+```
+##### Frontend
 
-After installation, open psql and run:
-
-CREATE DATABASE ragchat;
-\c ragchat
-CREATE EXTENSION vector;
-
-### Step 5. Create the .env file
-Inside the Back-end/app/ directory, create a new file named .env:
-
-# .env
-DATABASE_URL=postgresql+psycopg2://postgres:your_password@localhost:5432/ragchat
-OPENAI_API_KEY=sk-your-openai-key
-
-### Step 6. Create the database tables
-python -m main
-
-### Step 7. Run the backend server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-Backend is now running at:
-👉 http://localhost:8000
-
-Interactive API docs:
-👉 http://localhost:8000/docs
-
-
+From the Front-end directory, start the React app:
+```bash
+npm start
+```
