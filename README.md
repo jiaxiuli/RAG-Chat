@@ -25,6 +25,11 @@ It supports:
 
 ---
 
+### Preview
+![RAGChat Screenshot](https://github.com/jiaxiuli/RAG-Chat/blob/main/images/RAGChat-1.png)
+![RAGChat Screenshot - citation details](https://github.com/jiaxiuli/RAG-Chat/blob/main/images/RAGChat-2.png)
+
+
 ### Environment Requirements
 
 - Python ≥ 3.11
