@@ -1,27 +1,28 @@
-# 🧠 RAG Chat System (FastAPI + React + PostgreSQL + pgvector)
+# 🧠 RAG Chat System (FastAPI + React + LangChain + LangGraph + Qdrant)
 
-This project is a **Retrieval-Augmented Generation (RAG)** chat system built with **FastAPI** (backend), **React + Zustand** (frontend), and **PostgreSQL with pgvector** for embedding storage.
+A full-stack AI-powered knowledge assistant that allows users to upload documents and ask questions based on their content.
 
+RAG Chat uses Retrieval-Augmented Generation to find relevant information from uploaded documents and provide context-aware answers. The project combines modern AI frameworks, vector search, real-time response streaming, and full-stack application development.
 It supports:
-- Uploading and parsing PDFs  
-- Generating embeddings using the OpenAI API  
-- Storing and searching document chunks via pgvector  
-- Chatting with an LLM using your own documents as knowledge  
-- Real-time streaming responses over WebSocket  
-- Conversation history, logging, and deletion APIs  
+
+Uploading and parsing documents
+Splitting documents into searchable text chunks
+Generating embeddings using the OpenAI API
+Storing and retrieving document chunks with Qdrant
+Building RAG workflows with LangChain and LangGraph
+Chatting with an LLM using uploaded documents as knowledge
+Real-time streaming responses over WebSocket
+Conversation history, token usage tracking, logging, and deletion APIs
 
 ---
 
-## 🚀 Features
+## AI Workflow
 
-| Feature | Description |
-|----------|-------------|
-| **PDF Upload** | Parse PDF, chunk into text blocks, embed, and store in database. |
-| **Hybrid Search** | Combine semantic (pgvector) and keyword (BM25) retrieval. |
-| **Chat Interface** | Ask questions with context-aware LLM responses (OpenAI GPT model). |
-| **Streaming Responses** | Real-time streaming via WebSocket. |
-| **Conversation Memory** | All chats are saved and can be retrieved or deleted later. |
-| **Structured Backend** | Built with FastAPI and SQLAlchemy ORM. |
+LangChain provides reusable components for document processing, embeddings, retrieval, prompt management, and language-model integration.
+
+LangGraph is used to organize the RAG process as a stateful workflow. It coordinates the main stages of query processing, retrieval, context preparation, answer generation, fallback handling, and result persistence.
+
+The project uses a controlled RAG workflow rather than a fully autonomous AI agent.
 
 ---
 
@@ -32,67 +33,3 @@ It supports:
 
 ![RAGChat Screenshot - citation details](https://github.com/jiaxiuli/RAG-Chat/blob/main/images/RAGChat-2.png)
 
-
-### Environment Requirements
-
-- Python ≥ 3.11
-- PostgreSQL ≥ 15  
-- [pgvector](https://github.com/pgvector/pgvector) extension installed  
-- An [OpenAI API key](https://platform.openai.com/account/api-keys)
-- 
-- Before running the project, make sure your environment meets the following requirements:
-
-PostgreSQL: Installed and configured locally
-Node.js & npm: Installed (for the front-end)
-
-Set up your local PostgreSQL database using the following connection string:
-DATABASE_URL = "postgresql://rag_user:123456@localhost:5432/ragchat"
-
----
-
-### 🔑 Step 1. Clone this repo
-
-```bash
-git clone https://github.com/yourusername/RAGChat.git
-
-```
-### Step 2. Backend Setup
-Navigate to the Back-end folder:
-```bash
-cd Back-end
-```
-
-Create a .env file inside the Back-end folder and add your OpenAI API key:
-```bash
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-### Step 3. Frontend Setup
-Navigate to the Front-end folder:
-```bash
-cd Front-end
-```
-
-Install npm dependencies:
-```bash
-npm install
-```
-
-### Step 4. Running the Project
-##### Backend Server
-
-From the Back-end/app directory, run:
-```bash
-python main.py
-```
-##### Frontend
-
-From the Front-end directory, start the React app:
-```bash
-npm start
-```
